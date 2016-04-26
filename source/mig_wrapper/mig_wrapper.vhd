@@ -30,15 +30,18 @@ use IEEE.NUMERIC_STD.ALL;
 entity MIG_WRAPPER is
     generic(
         -- DO NOT CHANGE THESE VALUES!
-        nCS_PER_RANK    : integer := 1;  -- # of unique CS outputs per Rank for phy.
-        BANK_WIDTH      : integer := 3;  -- # of memory Bank Address bits.
-        CK_WIDTH        : integer := 1;  -- # of CK/CK# outputs to memory.
-        CKE_WIDTH       : integer := 1;  -- # of CKE outputs to memory.
-        CS_WIDTH        : integer := 1;  -- # of unique CS outputs to memory.
-        DM_WIDTH        : integer := 8;  -- # of Data Mask bits.
-        DQ_WIDTH        : integer := 64; -- # of Data (DQ) bits.
-        DQS_WIDTH       : integer := 8;  -- # of DQS/DQS# bits.
-        ROW_WIDTH       : integer := 14  -- # of memory Row Address bits.
+        nCS_PER_RANK        : integer := 1;  -- # of unique CS outputs per Rank for phy.
+        BANK_WIDTH          : integer := 3;  -- # of memory Bank Address bits.
+        CK_WIDTH            : integer := 1;  -- # of CK/CK# outputs to memory.
+        CKE_WIDTH           : integer := 1;  -- # of CKE outputs to memory.
+        CS_WIDTH            : integer := 1;  -- # of unique CS outputs to memory.
+        DM_WIDTH            : integer := 8;  -- # of Data Mask bits.
+        DQ_WIDTH            : integer := 64; -- # of Data (DQ) bits.
+        DQS_WIDTH           : integer := 8;  -- # of DQS/DQS# bits.
+        ROW_WIDTH           : integer := 14; -- # of memory Row Address bits.
+        -- ONLY FOR SIMULATION
+        SIM_BYPASS_INIT_CAL : string := "OFF" -- # = "OFF"  - Complete memory init & calibration sequence
+                                              -- # = "FAST" - Skip memory init & use abbreviated calib sequence    
     );
     Port (
         -- CLOCKS AND RESETS
@@ -77,23 +80,24 @@ end MIG_WRAPPER;
 
 architecture FULL of MIG_WRAPPER is
 
-    signal user_clk          : std_logic;
-    signal user_rst          : std_logic;
-    signal app_addr          : std_logic_vector(27 downto 0);
-    signal app_cmd           : std_logic_vector(2 downto 0);
-    signal app_en            : std_logic;
-    signal app_rdy           : std_logic;
-    signal app_wr_cmd_en     : std_logic;
-    signal app_wdf_rdy       : std_logic;
-    signal app_wdf_data      : std_logic_vector(255 downto 0);
-    signal app_wdf_end       : std_logic;
-    signal app_wdf_wren      : std_logic;
-    signal app_full_rdy      : std_logic;
-    signal app_rd_data       : std_logic_vector(255 downto 0);
-    signal app_rd_data_end   : std_logic;
-    signal app_rd_data_valid : std_logic;
+    signal user_clk            : std_logic;
+    signal user_rst            : std_logic;
+    signal app_cmd_addr        : std_logic_vector(27 downto 0);
+    signal app_cmd             : std_logic_vector(2 downto 0);
+    signal app_cmd_en          : std_logic;
+    signal app_cmd_rdy         : std_logic;
+    signal app_wr_data         : std_logic_vector(255 downto 0);
+    signal app_wr_data_end     : std_logic;
+    signal app_wr_data_vld     : std_logic;
+    signal app_wr_data_rdy     : std_logic;
+    signal app_full_rdy        : std_logic;
+    signal app_rd_data         : std_logic_vector(255 downto 0);
+    signal app_rd_data_end     : std_logic;
+    signal app_rd_data_vld     : std_logic;
+    signal mig_wr_data2_reg_en : std_logic;
+    signal mig_wr_data2_reg    : std_logic_vector(255 downto 0);
 
-    type state is (first_data, last_data);
+    type state is (first_state, second_state);
     signal present_state : state;
     signal next_state    : state;
 
@@ -102,10 +106,10 @@ begin
     USER_CLK_OUT <= user_clk;
     USER_RST_OUT <= user_rst;
 
-    app_full_rdy <= app_rdy AND app_wdf_rdy;
-    app_cmd <= "00" & NOT MIG_WR_EN;
-    app_en  <= app_wr_cmd_en OR MIG_RD_EN;
-    app_addr <= MIG_ADDR & "000";
+    app_full_rdy <= app_cmd_rdy AND app_wr_data_rdy;
+    app_cmd <= "00" & MIG_RD_EN;
+    app_cmd_addr <= MIG_ADDR & "000";
+    app_wr_data <= mig_wr_data2_reg WHEN (app_wr_data_end = '1') ELSE MIG_WR_DATA(255 downto 0);
 
     -- -------------------------------------------------------------------------
     --                        MIG WRAPPER FSM
@@ -116,7 +120,7 @@ begin
     begin
         if (rising_edge(user_clk)) then
             if (user_rst = '1') then
-                present_state <= first_data;
+                present_state <= first_state;
             else
                 present_state <= next_state;
             end if;
@@ -124,47 +128,71 @@ begin
     end process;
 
     -- NEXT STATE AND OUTPUTS LOGIC
-    process (present_state, MIG_WR_EN, MIG_WR_DATA, app_full_rdy)
+    process (present_state, MIG_WR_EN, MIG_RD_EN, app_full_rdy)
     begin
 
         case present_state is
      
-            when first_data =>
-                app_wdf_data <= MIG_WR_DATA(255 downto 0);
-                app_wdf_end <= '0';
-                app_wr_cmd_en <= '0';
+            when first_state =>
+                app_wr_data_end <= '0';
+                MIG_READY <= app_full_rdy;
 
                 if (MIG_WR_EN = '1' AND app_full_rdy = '1') then
-                    MIG_READY <= '0';
-                    app_wdf_wren <= '1';
-                    next_state <= last_data;
+                    app_cmd_en <= '1';
+                    app_wr_data_vld <= '1';
+                    mig_wr_data2_reg_en <= '1';
+                    next_state <= second_state;
+                elsif (MIG_RD_EN = '1' AND app_full_rdy = '1') then
+                    app_cmd_en <= '1';
+                    app_wr_data_vld <= '0';
+                    mig_wr_data2_reg_en <= '0';
+                    next_state <= first_state;
                 else
-                    MIG_READY <= app_full_rdy;
-                    app_wdf_wren <= '0';
-                    next_state <= first_data;
+                    app_cmd_en <= '0';
+                    app_wr_data_vld <= '0';
+                    mig_wr_data2_reg_en <= '0';
+                    next_state <= first_state;
                 end if;
 
-            when last_data =>
-                app_wdf_data <= MIG_WR_DATA(511 downto 256);
-                app_wdf_end <= '1';
+            when second_state =>
+                app_cmd_en <= '0';
+                app_wr_data_end <= '1';
+                mig_wr_data2_reg_en <= '0';
+                MIG_READY <= '0';
 
-                if (MIG_WR_EN = '1' AND app_full_rdy = '1') then
-                    MIG_READY <= '1';
-                    app_wr_cmd_en <= '1';
-                    app_wdf_wren <= '1';
-                    next_state <= first_data;
+                if (app_full_rdy = '1') then
+                    app_wr_data_vld <= '1';
+                    next_state <= first_state;
                 else
-                    MIG_READY <= '0';
-                    app_wr_cmd_en <= '0';
-                    app_wdf_wren <= '0';
-                    next_state <= last_data;
+                    app_wr_data_vld <= '0';
+                    next_state <= second_state;
                 end if;
 
             when others => 
+                app_cmd_en <= '0';
+                app_wr_data_end <= '0';
+                app_wr_data_vld <= '0';
+                mig_wr_data2_reg_en <= '0';
                 MIG_READY <= '0';
-                next_state <= first_data;
+                next_state <= first_state;
          
         end case;
+    end process;
+
+    -- -------------------------------------------------------------------------
+    --                        MIG WRAPPER WRITE DATA PART REGISTER
+    -- -------------------------------------------------------------------------
+
+    -- MIG SECOND WRITE DATA PART REGISTER
+    mig_wr_data2_reg_p : process (user_clk) 
+    begin
+        if (rising_edge(user_clk)) then
+            if (user_rst = '1') then
+                mig_wr_data2_reg <= (others => '0');
+            elsif (mig_wr_data2_reg_en = '1') then
+                mig_wr_data2_reg <= MIG_WR_DATA(511 downto 256);
+            end if;
+        end if;
     end process;
 
     -- -------------------------------------------------------------------------
@@ -177,7 +205,7 @@ begin
         if (rising_edge(user_clk)) then
             if (user_rst = '1') then
                 MIG_RD_DATA <= (others => '0');
-            elsif (app_rd_data_valid = '1') then
+            elsif (app_rd_data_vld = '1') then
                 if (app_rd_data_end = '1') then
                     MIG_RD_DATA(511 downto 256) <= app_rd_data;
                 else
@@ -194,7 +222,7 @@ begin
             if (user_rst = '1') then
                 MIG_RD_DATA_VLD <= '0';
             else
-                MIG_RD_DATA_VLD <= app_rd_data_end AND app_rd_data_valid;
+                MIG_RD_DATA_VLD <= app_rd_data_end AND app_rd_data_vld;
             end if;
         end if;   
     end process;
@@ -213,7 +241,7 @@ begin
         nCK_PER_CLK               => 2,
         tCK                       => 2500,
         DEBUG_PORT                => "OFF",
-        SIM_BYPASS_INIT_CAL       => "OFF",
+        SIM_BYPASS_INIT_CAL       => SIM_BYPASS_INIT_CAL,
         nCS_PER_RANK              => nCS_PER_RANK,
         DQS_CNT_WIDTH             => 3,
         RANK_WIDTH                => 1,
@@ -277,18 +305,18 @@ begin
         ddr3_ck_p                 => DDR3_CK_P,
         ddr3_ck_n                 => DDR3_CK_N,
         phy_init_done             => PHY_INIT_DONE,
-        app_wdf_wren              => app_wdf_wren,
-        app_wdf_data              => app_wdf_data,
+        app_wdf_wren              => app_wr_data_vld,
+        app_wdf_data              => app_wr_data,
         app_wdf_mask              => (others => '0'),
-        app_wdf_end               => app_wdf_end,
-        app_addr                  => app_addr,
+        app_wdf_end               => app_wr_data_end,
+        app_addr                  => app_cmd_addr,
         app_cmd                   => app_cmd,
-        app_en                    => app_en,
-        app_rdy                   => app_rdy,
-        app_wdf_rdy               => app_wdf_rdy,
+        app_en                    => app_cmd_en,
+        app_rdy                   => app_cmd_rdy,
+        app_wdf_rdy               => app_wr_data_rdy,
         app_rd_data               => app_rd_data,
         app_rd_data_end           => app_rd_data_end,
-        app_rd_data_valid         => app_rd_data_valid,
+        app_rd_data_valid         => app_rd_data_vld,
         ui_clk_sync_rst           => user_rst,
         ui_clk                    => user_clk,
         sys_rst                   => ASYNC_RST

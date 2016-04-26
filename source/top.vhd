@@ -29,7 +29,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity TOP is
     generic(
-    	-- DO NOT CHANGE THESE VALUES!
+        -- DO NOT CHANGE THESE VALUES!
         nCS_PER_RANK    : integer := 1;  -- # of unique CS outputs per Rank for phy.
         BANK_WIDTH      : integer := 3;  -- # of memory Bank Address bits.
         CK_WIDTH        : integer := 1;  -- # of CK/CK# outputs to memory.
@@ -38,7 +38,9 @@ entity TOP is
         DM_WIDTH        : integer := 8;  -- # of Data Mask bits.
         DQ_WIDTH        : integer := 64; -- # of Data (DQ) bits.
         DQS_WIDTH       : integer := 8;  -- # of DQS/DQS# bits.
-        ROW_WIDTH       : integer := 14  -- # of memory Row Address bits.
+        ROW_WIDTH       : integer := 14; -- # of memory Row Address bits.
+        -- ONLY FOR SIMULATION
+        SIM_BYPASS_INIT_CAL : string := "OFF"
     );
     Port (
         ASYNC_RST       : in    std_logic;
@@ -159,7 +161,8 @@ begin
         DQ_WIDTH        => DQ_WIDTH,
         DM_WIDTH        => DM_WIDTH,
         DQS_WIDTH       => DQS_WIDTH,
-        ROW_WIDTH       => ROW_WIDTH
+        ROW_WIDTH       => ROW_WIDTH,
+        SIM_BYPASS_INIT_CAL => SIM_BYPASS_INIT_CAL
     )
     port map(
         -- CLOCK AND RESETS
