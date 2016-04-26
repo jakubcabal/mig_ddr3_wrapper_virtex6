@@ -72,6 +72,8 @@ architecture FULL of DATA_GENERATOR is
     signal sel_data_part         : std_logic_vector(3 downto 0);
     signal sel_data_part_int     : integer range 0 to 15;
     signal test_wr_data_for_seq  : unsigned(511 downto 0);
+    signal mig_wr_en_sig         : std_logic;
+    signal mig_rd_en_sig         : std_logic;
 
     type state is (idle, one_request, seq_request, load_data, select_data, send_byte_0, send_byte_1, send_byte_2, send_byte_3);
     signal scmdp_pstate : state;
@@ -152,6 +154,8 @@ begin
                         generator_mode <= "011";
                     when X"2" => -- SEQ READ
                         generator_mode <= "100";
+                    when X"3" => -- SEQ READ AND WRITE (1:1) - SAME ADDRESS FOR ONE READ AND WRITE CYCLE
+                        generator_mode <= "101";
                     when others => 
                         generator_mode <= "000";
                 end case;
@@ -283,6 +287,8 @@ begin
     -- -------------------------------------------------------------------------
 
     MIG_ADDR <= std_logic_vector(mig_addr_sig);
+    MIG_WR_EN <= mig_wr_en_sig;
+    MIG_RD_EN <= mig_rd_en_sig;
     test_wr_data_for_seq <= cnt_wr_req & cnt_wr_req & cnt_wr_req & cnt_wr_req &
                             cnt_wr_req & cnt_wr_req & cnt_wr_req & cnt_wr_req &
                             cnt_wr_req & cnt_wr_req & cnt_wr_req & cnt_wr_req &
@@ -295,8 +301,8 @@ begin
             if (RST = '1' OR cnt_rst = '1') then
                 mig_addr_sig <= (others => '0');
                 MIG_WR_DATA <= (others => '0');
-                MIG_WR_EN <= '0';
-                MIG_RD_EN <= '0';
+                mig_wr_en_sig <= '0';
+                mig_rd_en_sig <= '0';
                 cnt_wr_req <= (others => '0');
                 cnt_rd_req <= (others => '0');
             elsif (MIG_READY = '1') then
@@ -305,48 +311,65 @@ begin
                     when "000" => -- IDLE
                         mig_addr_sig <= (others => '0');
                         MIG_WR_DATA <= (others => '0');
-                        MIG_WR_EN <= '0';
-                        MIG_RD_EN <= '0';
+                        mig_wr_en_sig <= '0';
+                        mig_rd_en_sig <= '0';
                         cnt_wr_req <= cnt_wr_req;
                         cnt_rd_req <= cnt_rd_req;
 
                     when "001" => -- ONE WRITE
                         mig_addr_sig <= TEST_ADDR;
                         MIG_WR_DATA <= TEST_DATA;
-                        MIG_WR_EN <= '1';
-                        MIG_RD_EN <= '0';
+                        mig_wr_en_sig <= '1';
+                        mig_rd_en_sig <= '0';
                         cnt_wr_req <= cnt_wr_req + 1;
                         cnt_rd_req <= cnt_rd_req;
 
                     when "010" => -- ONE READ
                         mig_addr_sig <= TEST_ADDR;
                         MIG_WR_DATA <= (others => '0');
-                        MIG_WR_EN <= '0';
-                        MIG_RD_EN <= '1';
+                        mig_wr_en_sig <= '0';
+                        mig_rd_en_sig <= '1';
                         cnt_wr_req <= cnt_wr_req;
                         cnt_rd_req <= cnt_rd_req + 1;
 
                     when "011" => -- SEQ WRITE
                         mig_addr_sig <= mig_addr_sig + 1; -- SEQ ADDR
                         MIG_WR_DATA <= std_logic_vector(test_wr_data_for_seq);
-                        MIG_WR_EN <= '1';
-                        MIG_RD_EN <= '0';
+                        mig_wr_en_sig <= '1';
+                        mig_rd_en_sig <= '0';
                         cnt_wr_req <= cnt_wr_req + 1;
                         cnt_rd_req <= cnt_rd_req;
 
                     when "100" => -- SEQ READ
                         mig_addr_sig <= mig_addr_sig + 1; -- SEQ ADDR
                         MIG_WR_DATA <= (others => '0');
-                        MIG_WR_EN <= '0';
-                        MIG_RD_EN <= '1';
+                        mig_wr_en_sig <= '0';
+                        mig_rd_en_sig <= '1';
                         cnt_wr_req <= cnt_wr_req;
                         cnt_rd_req <= cnt_rd_req + 1;
+
+                    when "101" => -- SEQ READ AND WRITE (1:1) - SAME ADDRESS FOR ONE READ AND WRITE CYCLE
+                        MIG_WR_DATA <= std_logic_vector(test_wr_data_for_seq);
+
+                        if (mig_wr_en_sig = '1') then
+                            mig_addr_sig <= mig_addr_sig;
+                            mig_wr_en_sig <= '0';
+                            mig_rd_en_sig <= '1';
+                            cnt_wr_req <= cnt_wr_req;
+                            cnt_rd_req <= cnt_rd_req + 1;
+                        else
+                            mig_addr_sig <= mig_addr_sig + 1;
+                            mig_wr_en_sig <= '1';
+                            mig_rd_en_sig <= '0';
+                            cnt_wr_req <= cnt_wr_req + 1;
+                            cnt_rd_req <= cnt_rd_req; 
+                        end if ;
 
                     when others => 
                         mig_addr_sig <= (others => '0');
                         MIG_WR_DATA <= (others => '0');
-                        MIG_WR_EN <= '0';
-                        MIG_RD_EN <= '0';
+                        mig_wr_en_sig <= '0';
+                        mig_rd_en_sig <= '0';
                         cnt_wr_req <= cnt_wr_req;
                         cnt_rd_req <= cnt_rd_req;
                  
