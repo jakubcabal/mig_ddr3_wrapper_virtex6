@@ -1,6 +1,8 @@
 # MIG DDR3 Wrapper for FPGA Virtex 6
 
-MIG Wrapper usnadňuje práci s DDR3 paměťovým řadičem na FPGA řady Virtex 6. Byl vytvořen jako školní projekt v rámci předmětu MPLD na FEKT VUT v Brně.
+MIG Wrapper usnadňuje práci s DDR3 paměťovým řadičem Xilinx MIG na FPGA řady Virtex 6. Byl vytvořen jako školní projekt v rámci předmětu MPLD na FEKT VUT v Brně pod licencí MIT. Součástí je také ukázkový design, který navíc obsahuje generátor ovládaný přes UART. Ukázkový design umožňuje základní měření rychlosti komunikace s DDR3 pamětí. MIG Wrapper byl vyvíjen na vývojové desce ML605.
+
+Samotný řadič Xilinx MIG je nutné vygenerovat pomocí Xilinx CORE generator! Součástí takto vygenerovaného řadiče je také model DDR3 paměti, který je nutný pro simulaci pomocí přiloženého souboru [source/testbench.vhd](source/testbench.vhd)! Vygenerovaný řadič MIG je nutné pro desku ML605 upravit, potřebné instrukce lze získat na webu firmy Xilinx v [dokumentu XTP047](http://www.xilinx.com/support/documentation/boards_and_kits/xtp047.pdf). Na webu firmy Xilinx lze též získat [ukázkový design řadiče MIG pro desku ML605](http://www.xilinx.com/products/boards-and-kits/ek-v6-ml605-g.html#documentation).
 
 ## Uživatelské rozhraní MIG Wrapperu
 
@@ -8,13 +10,13 @@ Zde je jednoduchý popis uživatelského rozhraní MIG Wrapperu, který slouží
 
 Název portu | IN/OUT | Datová šířka | Popis portu
 --- | --- | --- | ---
-MIG_ADDR | IN | 25b | Vstup pro adresování zápisových a čtecích požadavků, adresa musí být platná, pokud je aktivní vstup MIG_WR_EN nebo MIG_RD_EN.
-MIG_READY | OUT | 1b | Výstup, který říká, zda lze nastavit nový požadavek v dalším taktu a zda MIG Wrapper přijal současný požadavek na zápis nebo čtení.
-MIG_RD_EN | IN | 1b | Vstup, který povoluje požadavek na čtení z paměti z adresy nastavené na vstupu MIG_ADDR. Požadavek je přijat, když je aktivní výstup MIG_READY.
-MIG_WR_EN | IN | 1b | Vstup, který povoluje požadavek na zápis dat nastavených na vstupu MIG_WR_DATA do paměti na adresu nastavenou na vstupu MIG_ADDR. Požadavek je přijat, když je aktivní výstup MIG_READY.
-MIG_WR_DATA | IN | 512b | Datový vstup pro zápis dat do paměti, data musí být platná když je aktivní vstup MIG_WR_EN.
-MIG_RD_DATA | OUT | 512b | Datový výstup pro čtení dat z paměti, data jsou platná, když je aktivní výstup MIG_RD_DATA_VLD.
-MIG_RD_DATA_VLD | OUT | 1b | Výstup, který říká, zda jsou data na výstupu MIG_RD_DATA platná.
+MIG_ADDR | IN | 25b | Adresování zápisových a čtecích požadavků. Adresa musí být platná, pokud je aktivní MIG_WR_EN nebo MIG_RD_EN.
+MIG_READY | OUT | 1b | V aktivním stavu značí, že lze v dalším taktu nastavit nový požadavek na zápis nebo čtení.
+MIG_RD_EN | IN | 1b | Povolení požadavku na čtení z paměti z adresy nastavené na vstupu MIG_ADDR. Požadavek je přijat, když je aktivní MIG_READY. MIG_RD_EN nesmí být aktivní ve stejném taktu jako MIG_WR_EN!
+MIG_WR_EN | IN | 1b | Povolení požadavku na zápis dat nastavených na vstupu MIG_WR_DATA do paměti na adresu nastavenou na vstupu MIG_ADDR. Požadavek je přijat, když je aktivní výstup MIG_READY. MIG_WR_EN nesmí být aktivní ve stejném taktu jako MIG_RD_EN!
+MIG_WR_DATA | IN | 512b | Data pro zápis do paměti. Data musí být platná, když je aktivní MIG_WR_EN.
+MIG_RD_DATA | OUT | 512b | Data vyčtená z paměti. Data jsou platná, když je aktivní MIG_RD_DATA_VLD.
+MIG_RD_DATA_VLD | OUT | 1b | V aktivním stavu značí, že data na výstupu MIG_RD_DATA jsou platná.
 
 **Příklad zápisu do paměti**
 
@@ -30,4 +32,8 @@ Následující příklad ukazuje časový diagram požadavků na vyčtení z pam
 
 ## Naměřené přenosové rychlosti
 
-Další popis bude brzy doplněn...
+* Rychlost sekvenčního zápisu: 5,69 GB/s
+* Rychlost sekvenčního čtení: 6,23 GB/s
+* Rychlost sekvenčního zápisu a čtení v poměru 1:1: 0,69 GB/s*
+
+*V tomto režimu, kdy se po jednom střídají požadavky na zápis a čtení, došlo k výraznému poklesu rychlost, proto není vhodné tento styl komunikace s pamětí používat v praxi.
