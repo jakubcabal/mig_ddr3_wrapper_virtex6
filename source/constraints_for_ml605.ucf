@@ -1,0 +1,227 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016 Jakub Cabal <xcabal05@stud.feec.vutbr.cz>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# Website: https://github.com/jakubcabal/mig_ddr3_wrapper_virtex6
+#-------------------------------------------------------------------------------
+
+################################################################################
+## UCF FILE ONLY FOR ML605!!!
+################################################################################
+
+# Timing constraints
+################################################################################
+NET "CLK_REF_P" TNM_NET = TNM_clk_ref;
+NET "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/clk_rsync[?]" TNM_NET = TNM_clk_rsync;
+
+TIMESPEC "TS_clk_ref" = PERIOD "TNM_clk_ref" 5 ns;
+TIMESPEC "TS_clk_rsync" = PERIOD "TNM_clk_rsync" 5 ns;
+
+TIMEGRP "TG_clk_rsync_rise" = RISING  "TNM_clk_rsync";
+TIMEGRP "TG_clk_rsync_fall" = FALLING "TNM_clk_rsync";
+
+# I/O STANDARDS
+################################################################################
+NET  "CLK_REF_P"            IOSTANDARD = LVDS_25 | DIFF_TERM = TRUE;
+NET  "CLK_REF_N"            IOSTANDARD = LVDS_25 | DIFF_TERM = TRUE;
+NET  "ASYNC_RST"            IOSTANDARD = SSTL15;
+NET  "PHY_INIT_DONE"        IOSTANDARD = LVCMOS25;
+NET  "DDR3_DQ[*]"           IOSTANDARD = SSTL15_T_DCI;
+NET  "DDR3_ADDR[*]"         IOSTANDARD = SSTL15;
+NET  "DDR3_BA[*]"           IOSTANDARD = SSTL15;
+NET  "DDR3_RAS_N"           IOSTANDARD = SSTL15;
+NET  "DDR3_CAS_N"           IOSTANDARD = SSTL15;
+NET  "DDR3_WE_N"            IOSTANDARD = SSTL15;
+NET  "DDR3_RESET_N"         IOSTANDARD = SSTL15;
+NET  "DDR3_CKE[*]"          IOSTANDARD = SSTL15;
+NET  "DDR3_ODT[*]"          IOSTANDARD = SSTL15;
+NET  "DDR3_CS_N[*]"         IOSTANDARD = SSTL15;
+NET  "DDR3_DM[*]"           IOSTANDARD = SSTL15;
+NET  "DDR3_DQS_P[*]"        IOSTANDARD = DIFF_SSTL15_T_DCI;
+NET  "DDR3_DQS_N[*]"        IOSTANDARD = DIFF_SSTL15_T_DCI;
+NET  "DDR3_CK_P[*]"         IOSTANDARD = DIFF_SSTL15;
+NET  "DDR3_CK_N[*]"         IOSTANDARD = DIFF_SSTL15;
+
+# DCI_CASCADING
+################################################################################
+CONFIG DCI_CASCADE = "26 25";
+CONFIG DCI_CASCADE = "36 35";
+
+# Location Constraints
+################################################################################
+NET  "ASYNC_RST"            LOC = "H10" ;   # ML605 SW10
+NET  "CLK_REF_P"            LOC = "J9" ;
+NET  "CLK_REF_N"            LOC = "H9" ;
+## UART
+NET  "UART_TX"              LOC = "J25" ;
+NET  "UART_RX"              LOC = "J24" ;
+## DDR3
+NET  "DDR3_DQ[0]"           LOC = "J11" ;
+NET  "DDR3_DQ[1]"           LOC = "E13" ;
+NET  "DDR3_DQ[2]"           LOC = "F13" ;
+NET  "DDR3_DQ[3]"           LOC = "K11" ;
+NET  "DDR3_DQ[4]"           LOC = "L11" ;
+NET  "DDR3_DQ[5]"           LOC = "K13" ;
+NET  "DDR3_DQ[6]"           LOC = "K12" ;
+NET  "DDR3_DQ[7]"           LOC = "D11" ;
+NET  "DDR3_DQ[8]"           LOC = "M13" ;
+NET  "DDR3_DQ[9]"           LOC = "J14" ;
+NET  "DDR3_DQ[10]"          LOC = "B13" ;
+NET  "DDR3_DQ[11]"          LOC = "B12" ;
+NET  "DDR3_DQ[12]"          LOC = "G10" ;
+NET  "DDR3_DQ[13]"          LOC = "M11" ;
+NET  "DDR3_DQ[14]"          LOC = "C12" ;
+NET  "DDR3_DQ[15]"          LOC = "A11" ;
+NET  "DDR3_DQ[16]"          LOC = "G11" ;
+NET  "DDR3_DQ[17]"          LOC = "F11" ;
+NET  "DDR3_DQ[18]"          LOC = "D14" ;
+NET  "DDR3_DQ[19]"          LOC = "C14" ;
+NET  "DDR3_DQ[20]"          LOC = "G12" ;
+NET  "DDR3_DQ[21]"          LOC = "G13" ;
+NET  "DDR3_DQ[22]"          LOC = "F14" ;
+NET  "DDR3_DQ[23]"          LOC = "H14" ;
+NET  "DDR3_DQ[24]"          LOC = "C19" ;
+NET  "DDR3_DQ[25]"          LOC = "G20" ;
+NET  "DDR3_DQ[26]"          LOC = "E19" ;
+NET  "DDR3_DQ[27]"          LOC = "F20" ;
+NET  "DDR3_DQ[28]"          LOC = "A20" ;
+NET  "DDR3_DQ[29]"          LOC = "A21" ;
+NET  "DDR3_DQ[30]"          LOC = "E22" ;
+NET  "DDR3_DQ[31]"          LOC = "E23" ;
+NET  "DDR3_DQ[32]"          LOC = "G21" ;
+NET  "DDR3_DQ[33]"          LOC = "B21" ;
+NET  "DDR3_DQ[34]"          LOC = "A23" ;
+NET  "DDR3_DQ[35]"          LOC = "A24" ;
+NET  "DDR3_DQ[36]"          LOC = "C20" ;
+NET  "DDR3_DQ[37]"          LOC = "D20" ;
+NET  "DDR3_DQ[38]"          LOC = "J20" ;
+NET  "DDR3_DQ[39]"          LOC = "G22" ;
+NET  "DDR3_DQ[40]"          LOC = "D26" ;
+NET  "DDR3_DQ[41]"          LOC = "F26" ;
+NET  "DDR3_DQ[42]"          LOC = "B26" ;
+NET  "DDR3_DQ[43]"          LOC = "E26" ;
+NET  "DDR3_DQ[44]"          LOC = "C24" ;
+NET  "DDR3_DQ[45]"          LOC = "D25" ;
+NET  "DDR3_DQ[46]"          LOC = "D27" ;
+NET  "DDR3_DQ[47]"          LOC = "C25" ;
+NET  "DDR3_DQ[48]"          LOC = "C27" ;
+NET  "DDR3_DQ[49]"          LOC = "B28" ;
+NET  "DDR3_DQ[50]"          LOC = "D29" ;
+NET  "DDR3_DQ[51]"          LOC = "B27" ;
+NET  "DDR3_DQ[52]"          LOC = "G27" ;
+NET  "DDR3_DQ[53]"          LOC = "A28" ;
+NET  "DDR3_DQ[54]"          LOC = "E24" ;
+NET  "DDR3_DQ[55]"          LOC = "G25" ;
+NET  "DDR3_DQ[56]"          LOC = "F28" ;
+NET  "DDR3_DQ[57]"          LOC = "B31" ;
+NET  "DDR3_DQ[58]"          LOC = "H29" ;
+NET  "DDR3_DQ[59]"          LOC = "H28" ;
+NET  "DDR3_DQ[60]"          LOC = "B30" ;
+NET  "DDR3_DQ[61]"          LOC = "A30" ;
+NET  "DDR3_DQ[62]"          LOC = "E29" ;
+NET  "DDR3_DQ[63]"          LOC = "F29" ;
+NET  "DDR3_ADDR[13]"        LOC = "J15" ;
+NET  "DDR3_ADDR[12]"        LOC = "H15" ;
+NET  "DDR3_ADDR[11]"        LOC = "M15" ;
+NET  "DDR3_ADDR[10]"        LOC = "M16" ;
+NET  "DDR3_ADDR[9]"         LOC = "F15" ;
+NET  "DDR3_ADDR[8]"         LOC = "G15" ;
+NET  "DDR3_ADDR[7]"         LOC = "B15" ;
+NET  "DDR3_ADDR[6]"         LOC = "A15" ;
+NET  "DDR3_ADDR[5]"         LOC = "J17" ;
+NET  "DDR3_ADDR[4]"         LOC = "D16" ;
+NET  "DDR3_ADDR[3]"         LOC = "E16" ;
+NET  "DDR3_ADDR[2]"         LOC = "B16" ;
+NET  "DDR3_ADDR[1]"         LOC = "A16" ;
+NET  "DDR3_ADDR[0]"         LOC = "L14" ;
+NET  "DDR3_BA[2]"           LOC = "L15" ;
+NET  "DDR3_BA[1]"           LOC = "J19" ;
+NET  "DDR3_BA[0]"           LOC = "K19" ;
+NET  "DDR3_RAS_N"           LOC = "L19" ;
+NET  "DDR3_CAS_N"           LOC = "C17" ;
+NET  "DDR3_WE_N"            LOC = "B17" ;
+NET  "DDR3_RESET_N"         LOC = "E18" ;
+NET  "DDR3_CKE[0]"          LOC = "M18" ;
+NET  "DDR3_ODT[0]"          LOC = "F18" ;
+NET  "DDR3_CS_N[0]"         LOC = "K18" ;
+NET  "DDR3_DM[0]"           LOC = "E11" ;
+NET  "DDR3_DM[1]"           LOC = "B11" ;
+NET  "DDR3_DM[2]"           LOC = "E14" ;
+NET  "DDR3_DM[3]"           LOC = "D19" ;
+NET  "DDR3_DM[4]"           LOC = "B22" ;
+NET  "DDR3_DM[5]"           LOC = "A26" ;
+NET  "DDR3_DM[6]"           LOC = "A29" ;
+NET  "DDR3_DM[7]"           LOC = "A31" ;
+NET  "PHY_INIT_DONE"        LOC = "AE23" ;  # ML605 LED 3
+NET  "DDR3_DQS_P[0]"        LOC = "D12" ;
+NET  "DDR3_DQS_N[0]"        LOC = "E12" ;
+NET  "DDR3_DQS_P[1]"        LOC = "H12" ;
+NET  "DDR3_DQS_N[1]"        LOC = "J12" ;
+NET  "DDR3_DQS_P[2]"        LOC = "A13" ;
+NET  "DDR3_DQS_N[2]"        LOC = "A14" ;
+NET  "DDR3_DQS_P[3]"        LOC = "H19" ;
+NET  "DDR3_DQS_N[3]"        LOC = "H20" ;
+NET  "DDR3_DQS_P[4]"        LOC = "B23" ;
+NET  "DDR3_DQS_N[4]"        LOC = "C23" ;
+NET  "DDR3_DQS_P[5]"        LOC = "B25" ;
+NET  "DDR3_DQS_N[5]"        LOC = "A25" ;
+NET  "DDR3_DQS_P[6]"        LOC = "H27" ;
+NET  "DDR3_DQS_N[6]"        LOC = "G28" ;
+NET  "DDR3_DQS_P[7]"        LOC = "C30" ;
+NET  "DDR3_DQS_N[7]"        LOC = "D30" ;
+NET  "DDR3_CK_P[0]"         LOC = "G18" ;
+NET  "DDR3_CK_N[0]"         LOC = "H18" ;
+
+CONFIG PROHIBIT = C29,M12;
+
+# Place RSYNC OSERDES and IODELAY:
+################################################################################
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col1.u_oserdes_rsync"    LOC = "OLOGIC_X1Y139";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col1.u_odelay_rsync"     LOC = "IODELAY_X1Y139";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col1.u_bufr_rsync"       LOC = "BUFR_X1Y6";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_oserdes_rsync"    LOC = "OLOGIC_X2Y139";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_odelay_rsync"     LOC = "IODELAY_X2Y139";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_bufr_rsync"       LOC = "BUFR_X2Y6";
+
+CONFIG PROHIBIT = B20,C13,C28,D24,F21,F25,K14,L13;
+
+# Place CPT OSERDES and IODELAY:
+################################################################################
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_oserdes_cpt"  LOC = "OLOGIC_X2Y137";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_odelay_cpt"   LOC = "IODELAY_X2Y137";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_oserdes_cpt"  LOC = "OLOGIC_X2Y141";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_odelay_cpt"   LOC = "IODELAY_X2Y141";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_oserdes_cpt"  LOC = "OLOGIC_X2Y143";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_odelay_cpt"   LOC = "IODELAY_X2Y143";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_oserdes_cpt"  LOC = "OLOGIC_X1Y179";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_odelay_cpt"   LOC = "IODELAY_X1Y179";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[4].u_oserdes_cpt"  LOC = "OLOGIC_X1Y181";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[4].u_odelay_cpt"   LOC = "IODELAY_X1Y181";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[5].u_oserdes_cpt"  LOC = "OLOGIC_X1Y137";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[5].u_odelay_cpt"   LOC = "IODELAY_X1Y137";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[6].u_oserdes_cpt"  LOC = "OLOGIC_X1Y141";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[6].u_odelay_cpt"   LOC = "IODELAY_X1Y141";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[7].u_oserdes_cpt"  LOC = "OLOGIC_X1Y143";
+INST "mig_wrapper_i/mig_ddr3_core_i/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[7].u_odelay_cpt"   LOC = "IODELAY_X1Y143";
+
+# MMCM_ADV CONSTRAINTS
+################################################################################
+INST "mig_wrapper_i/mig_ddr3_core_i/u_infrastructure/u_mmcm_adv"    LOC = "MMCM_ADV_X0Y8";
